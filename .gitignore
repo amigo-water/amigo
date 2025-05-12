@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# Logs
+logs/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Service specific directories
+services/*/node_modules/
+services/*/dist/
+services/*/build/
+
+# Shared directory specific
+shared/node_modules/
+shared/dist/
+shared/build/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Local development files
+.local
+.cache
+
+# Service configuration files
+services/*/config/local.json
+services/*/config/*.local.json
