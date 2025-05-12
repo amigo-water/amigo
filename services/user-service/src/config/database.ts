@@ -19,4 +19,4 @@ dotenv.config();
   }
 });
 
-export default sequelize;
+export default sequelize; 
