@@ -34,9 +34,9 @@ export class UserController {
     Number(process.env.OTP_EXPIRES_IN) || 5 * 60 * 1000; // 5 minutes
   public readonly OTP_LENGTH: number = Number(process.env.OTP_LENGTH) || 6;
 
-  private otpCache: Map<string, { otp: string; expiresAt: number }> = new Map();
+  private readonly otpCache: Map<string, { otp: string; expiresAt: number }> = new Map();
 
-  private transporter = nodemailer.createTransport({
+  private readonly transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
       user: process.env.SMTP_USER,
@@ -44,23 +44,36 @@ export class UserController {
     },
   });
 
-  private twilioClient = twilio(
+  private readonly twilioClient = twilio(
     process.env.TWILIO_ACCOUNT_SID,
     process.env.TWILIO_AUTH_TOKEN
   );
 
+  constructor() {
+    // Bind methods to ensure proper 'this' context
+    this.generateOTP = this.generateOTP.bind(this);
+    this.storeOTP = this.storeOTP.bind(this);
+    this.sendOTPEmail = this.sendOTPEmail.bind(this);
+    this.sendOTPPhone = this.sendOTPPhone.bind(this);
+    this.validateOTP = this.validateOTP.bind(this);
+  }
+
   private generateOTP(): string {
+    console.log("Generating OTP");
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   private storeOTP(identifier: string, otp: string): void {
+    console.log("Storing OTP for identifier:", identifier);
     this.otpCache.set(identifier, {
       otp,
       expiresAt: Date.now() + Number(process.env.OTP_EXPIRES_IN),
     });
+    console.log("OTP stored successfully");
   }
 
   private async sendOTPEmail(email: string, otp: string): Promise<void> {
+    console.log("Sending OTP email to:", email);
     await this.transporter.sendMail({
       from: process.env.SMTP_USER,
       to: email,
@@ -101,29 +114,56 @@ export class UserController {
         type: "email" | "phone";
       };
 
+      console.log("Received OTP request:", { identifier, type });
+
       if (!identifier || !type) {
+        console.error("Missing required fields");
         return res
           .status(400)
           .json({ message: "Identifier and type are required" });
       }
 
-      const otp = this.generateOTP();
-      this.storeOTP(identifier, otp);
+      // Validate email format if type is email
+      if (type === "email" && !identifier.includes("@")) {
+        console.error("Invalid email format");
+        return res.status(400).json({ message: "Invalid email format" });
+      }
 
+      // Validate phone number format if type is phone
+      if (type === "phone" && !/^[+]?[0-9]{10,}$/.test(identifier)) {
+        console.error("Invalid phone number format");
+        return res.status(400).json({ message: "Invalid phone number format" });
+      }
+
+      const otp = this.generateOTP();
+      console.log("Generated OTP:", otp);
+
+      // Store OTP with identifier
+      this.storeOTP(identifier, otp);
+      console.log("OTP stored successfully for identifier:", identifier);
+
+      // Send OTP based on type
       switch (type) {
         case "email":
+          console.log("Sending OTP email to:", identifier);
           await this.sendOTPEmail(identifier, otp);
           break;
         case "phone":
+          console.log("Sending OTP SMS to:", identifier);
           await this.sendOTPPhone(identifier, otp);
           break;
         default:
+          console.error("Invalid type received:", type);
           return res.status(400).json({ message: "Invalid type" });
       }
 
       res.json({ message: "OTP sent successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Error sending OTP", error });
+      console.error("Error in requestOTP:", error);
+      res.status(500).json({ 
+        message: "Error sending OTP", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
     }
   }
 
@@ -277,8 +317,101 @@ export class UserController {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Get client IP address
-      // Get client IP address
+      // For phone and username login, proceed directly
+      const ipAddress =
+        req.headers["x-forwarded-for"] ||
+        req.socket.remoteAddress ||
+        (req as Express.Request & { socket: { remoteAddress: string } }).socket
+          ?.remoteAddress ||
+        "unknown";
+
+      // Create login history record
+      await LoginHistory.create({
+        user_id: user.user_id,
+        ip_address: ipAddress,
+        user_agent: req.headers["user-agent"] || "unknown",
+        login_at: new Date(),
+        success: true,
+      });
+
+      // Generate OTP for email-based login
+      if (type === "email") {
+        console.log("Generating OTP for email-based login");
+        const otp = this.generateOTP();
+        console.log("Generated OTP:", otp);
+        this.storeOTP(identifier, otp);
+        await this.sendOTPEmail(identifier, otp);
+        
+        return res.status(200).json({
+          message: "OTP sent successfully",
+          user: {
+            user_id: user.user_id,
+            username: user.username,
+            name: user.name,
+            role: user.role,
+            utility_id: user.utility_id,
+            contact_info: user.contact_info,
+            status: user.status,
+            created_at: user.createdAt,
+          }
+        });
+      }
+
+      
+
+      // Generate JWT token
+      const token = jwt.sign(
+        { user_id: user.user_id },
+        process.env.JWT_SECRET as string,
+        { expiresIn: "24h" }
+      );
+
+      res.json({
+        message: "Login successful",
+        user: {
+          user_id: user.user_id,
+          username: user.username,
+          name: user.name,
+          role: user.role,
+          utility_id: user.utility_id,
+          contact_info: user.contact_info,
+          status: user.status,
+          created_at: user.createdAt,
+        },
+        token,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error during login", error: error });
+    }
+  }
+
+  async verifyLoginOTP(req: Request, res: Response) {
+    try {
+      const { identifier, otp } = req.body as {
+        identifier: string;
+        otp: string;
+      };
+
+      if (!identifier || !otp) {
+        return res.status(400).json({ message: "Identifier and OTP are required" });
+      }
+
+      const isValid = await this.validateOTP(identifier, otp);
+      if (!isValid) {
+        return res.status(400).json({ message: "Invalid or expired OTP" });
+      }
+
+      // Find user by email
+      const user = await User.findOne({
+        where: {
+          "contact_info.email": identifier,
+        },
+      });
+
+      if (!user) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
       // Get client IP address
       const ipAddress =
         req.headers["x-forwarded-for"] ||
@@ -313,14 +446,15 @@ export class UserController {
           utility_id: user.utility_id,
           contact_info: user.contact_info,
           status: user.status,
-          created_at: user.createdAt,
+          created_at: user.created_at,
         },
         token,
       });
     } catch (error) {
-      res.status(500).json({ message: "Error during login", error: error });
+      res.status(500).json({ message: "Error verifying OTP", error: error });
     }
   }
+
   async logout(req: Request, res: Response) {
     try {
       const userId = req.user?.user_id;
@@ -364,11 +498,11 @@ export class UserController {
           utility_id: user?.utility_id,
           contact_info: user?.contact_info,
           status: user?.status,
-          createdAt: user?.createdAt,
-          updatedAt: user?.updatedAt,
+          created_at: user?.createdAt,
+          updated_at: user?.updatedAt,
           roles: userRoles.map((role: any) => ({
             role_name: role.role_name,
-            assignedAt: role.assignedAt,
+            assigned_at: role.assigned_at,
           })),
         },
       });

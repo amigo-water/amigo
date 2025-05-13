@@ -6,21 +6,21 @@ const router = express.Router();
 const userController = new UserController();
 
 // Public routes
-router.post('/register', userController.register);
-router.post('/login', userController.login);
-router.post('/request-otp', userController.requestOTP);
-router.post('/verify-otp', userController.verifyOTP);
+router.post('/register', (req, res) => userController.register(req, res));
+router.post('/login', (req, res) => userController.login(req, res));
+router.post('/request-otp', (req, res) => userController.requestOTP(req, res));
+router.post('/verify-otp', (req, res) => userController.verifyOTP(req, res));
 
 // Protected routes
-router.get('/profile', verifyToken, userController.getProfile);
-router.put('/profile', verifyToken, userController.updateProfile);
-router.put('/password', verifyToken, userController.updatePassword);
-router.post('/logout', verifyToken, userController.logout);
+router.get('/profile', verifyToken, (req, res) => userController.getProfile(req, res));
+router.put('/profile', verifyToken, (req, res) => userController.updateProfile(req, res));
+router.put('/password', verifyToken, (req, res) => userController.updatePassword(req, res));
+router.post('/logout', verifyToken, (req, res) => userController.logout(req, res));
 
 // Role management routes
-router.post('/roles', verifyToken, userController.createRole);
-router.put('/roles/:roleId', verifyToken, userController.updateRole);
-router.delete('/roles/:roleId', verifyToken, userController.deleteRole);
-router.get('/roles', verifyToken, userController.getRoles);
+router.post('/roles', verifyToken, (req, res) => userController.createRole(req, res));
+router.put('/roles/:roleId', verifyToken, (req, res) => userController.updateRole(req, res));
+router.delete('/roles/:roleId', verifyToken, (req, res) => userController.deleteRole(req, res));
+router.get('/roles', verifyToken, (req, res) => userController.getRoles(req, res));
 
 export { router as userRoutes };
