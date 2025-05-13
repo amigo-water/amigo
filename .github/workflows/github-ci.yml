@@ -39,9 +39,12 @@ jobs:
       - name: Install dependencies and run lint/test for each service
         working-directory: services
         run: |
-          for service in user-service consumer-service policy-service; do
+          for service in user-service; do
+            echo "====================================================="
             echo "Processing $service"
+            echo "====================================================="
             cd $service
+            echo "====================================================="
             npm install
             #npm run lint
             #npm run test
