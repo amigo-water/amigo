@@ -7,6 +7,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+COPY ../shared ./shared
 
 RUN npm run build
 
