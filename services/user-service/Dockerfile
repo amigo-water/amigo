@@ -8,7 +8,7 @@ RUN npm ci
 
 COPY . .
 
-RUN npm run dev
+RUN npm run build
 
 # ---------- Development Stage ----------
 FROM node:22-alpine

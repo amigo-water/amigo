@@ -55,8 +55,8 @@ jobs:
         working-directory: services
         run: |
           docker build --no-cache -t ashritha07/user-service:${{ github.sha }} ./user-service
-          docker build --no-cache -t ashritha07/consumer-service:${{ github.sha }} ./consumer-service
-          docker build --no-cache -t ashritha07/policy-service:${{ github.sha }} ./policy-service
+          #docker build --no-cache -t ashritha07/consumer-service:${{ github.sha }} ./consumer-service
+          #docker build --no-cache -t ashritha07/policy-service:${{ github.sha }} ./policy-service
 
       - name: Check image sizes
         working-directory: services
@@ -73,5 +73,5 @@ jobs:
         working-directory: services
         run: |
             docker push ashritha07/user-service:${{ github.sha }}
-            docker push ashritha07/consumer-service:${{ github.sha }}
-            docker push ashritha07/policy-service:${{ github.sha }}
+            #docker push ashritha07/consumer-service:${{ github.sha }}
+            #docker push ashritha07/policy-service:${{ github.sha }}
