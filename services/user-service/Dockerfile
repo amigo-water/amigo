@@ -1,13 +1,16 @@
+# ---------- Build Stage ----------
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependencies and install them
-COPY package*.json ./
+# Copy shared package first
+COPY shared ./shared
+
+# Copy user-service package
+COPY services/user-service/package*.json ./
 RUN npm ci
 
-COPY . .
-COPY ../shared ./shared
+COPY services/user-service ./
 
 RUN npm run build
 
@@ -16,7 +19,7 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY --from=builder /app ./
+COPY --from=builder /app .
 
 RUN npm ci
 
