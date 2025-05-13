@@ -1,15 +1,12 @@
 name: Build and Test Backend Services
-
 on:
   push:
     branches: [ dev-ops ]
   pull_request:
     branches: [ dev-ops ]
-
 jobs:
   build:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:17
@@ -23,59 +20,54 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-
+      
       - name: Install dependencies in shared/ and each service
-        working-directory: services
         run: |
           echo "====================================================="
           echo "Installing dependencies in shared/"
           echo "====================================================="
-          cd ../shared
+          cd shared
           npm install
           cd ../services
-
           for service in */; do
-            service_name=${service%/}
-            echo "====================================================="
-            echo "Processing $service_name"
-            echo "====================================================="
-            cd $service_name
-            npm install
-            # npm run lint
-            # npm run test
-            cd ..
+            if [ "$service" != "infra/" ]; then
+              service_name=${service%/}
+              echo "====================================================="
+              echo "Processing $service_name"
+              echo "====================================================="
+              cd $service_name
+              npm install
+              # npm run lint
+              # npm run test
+              cd ..
+            fi
           done
-
+      
       - name: Build Docker Images
-        working-directory: services
         run: |
+          # Build from the root directory where the Dockerfile can properly access both services/ and shared/
           docker build --no-cache -f services/user-service/Dockerfile -t ashritha07/user-service:${{ github.sha }} .
-          # docker build --no-cache -t ashritha07/consumer-service:${{ github.sha }} ./consumer-service
-          # docker build --no-cache -t ashritha07/policy-service:${{ github.sha }} ./policy-service
-
+          # docker build --no-cache -f services/consumer-service/Dockerfile -t ashritha07/consumer-service:${{ github.sha }} .
+          # docker build --no-cache -f services/policy-service/Dockerfile -t ashritha07/policy-service:${{ github.sha }} .
+      
       - name: Check image sizes
-        working-directory: services
         run: |
-          for service in user-service consumer-service policy-service; do
-            size=$(docker image inspect ashritha07/$service:${{ github.sha }} --format='{{.Size}}')
-            echo "$service image size: $((size / 1024 / 1024)) MB"
-          done
-
+          docker image inspect ashritha07/user-service:${{ github.sha }} --format='{{.Size}}' | awk '{print "user-service image size: " $1/1024/1024 " MB"}'
+          # Additional services would be checked here
+      
       - name: Login to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
         
       - name: Push Docker Images
-        working-directory: services
         run: |
-            docker push ashritha07/user-service:${{ github.sha }}
-            # docker push ashritha07/consumer-service:${{ github.sha }}
-            # docker push ashritha07/policy-service:${{ github.sha }}
+          docker push ashritha07/user-service:${{ github.sha }}
+          # docker push ashritha07/consumer-service:${{ github.sha }}
+          # docker push ashritha07/policy-service:${{ github.sha }}
