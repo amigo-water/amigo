@@ -33,21 +33,25 @@ jobs:
         with:
           node-version: 20
 
-      - name: Go to services folder
-        run: cd services
-
-      - name: Install dependencies and run lint/test for each service
+      - name: Install dependencies in shared/ and each service
         working-directory: services
         run: |
-          for service in user-service; do
+          echo "====================================================="
+          echo "Installing dependencies in shared/"
+          echo "====================================================="
+          cd ../shared
+          npm install
+          cd ../services
+
+          for service in */; do
+            service_name=${service%/}
             echo "====================================================="
-            echo "Processing $service"
+            echo "Processing $service_name"
             echo "====================================================="
-            cd $service
-            echo "====================================================="
+            cd $service_name
             npm install
-            #npm run lint
-            #npm run test
+            # npm run lint
+            # npm run test
             cd ..
           done
 
@@ -55,8 +59,8 @@ jobs:
         working-directory: services
         run: |
           docker build --no-cache -t ashritha07/user-service:${{ github.sha }} ./user-service
-          #docker build --no-cache -t ashritha07/consumer-service:${{ github.sha }} ./consumer-service
-          #docker build --no-cache -t ashritha07/policy-service:${{ github.sha }} ./policy-service
+          # docker build --no-cache -t ashritha07/consumer-service:${{ github.sha }} ./consumer-service
+          # docker build --no-cache -t ashritha07/policy-service:${{ github.sha }} ./policy-service
 
       - name: Check image sizes
         working-directory: services
@@ -73,5 +77,5 @@ jobs:
         working-directory: services
         run: |
             docker push ashritha07/user-service:${{ github.sha }}
-            #docker push ashritha07/consumer-service:${{ github.sha }}
-            #docker push ashritha07/policy-service:${{ github.sha }}
+            # docker push ashritha07/consumer-service:${{ github.sha }}
+            # docker push ashritha07/policy-service:${{ github.sha }}
