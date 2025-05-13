@@ -5,7 +5,8 @@
   "main": "../../dist/services/user-service/index.js",
   "scripts": {
     "start": "node -r tsconfig-paths/register ../../dist/services/user-service/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/index.ts",
+    "dev": "env-cmd -f .env.dev ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/index.ts",
+    "prod": "env-cmd -f .env.prod ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/index.ts",
     "build": "tsc",
     "test": "jest"
   },
@@ -19,6 +20,7 @@
     "@types/twilio": "^3.19.2",
     "bcryptjs": "^3.0.2",
     "dotenv": "^16.5.0",
+    "env-cmd": "^10.1.0",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.0.0",

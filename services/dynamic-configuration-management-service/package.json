@@ -4,14 +4,16 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "env-cmd -f .env.dev ts-node-dev --respawn --transpile-only src/index.ts",
+    "prod": "env-cmd -f .env.prod ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc"
   },
   "dependencies": {
     "dotenv": "^16.0.3",
+    "env-cmd": "^10.1.0",
     "express": "^4.18.2",
-    "sequelize": "^6.32.1",
-    "pg": "^8.11.1"
+    "pg": "^8.11.1",
+    "sequelize": "^6.32.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",

@@ -4,7 +4,8 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "env-cmd -f .env.dev ts-node-dev --respawn --transpile-only src/index.ts",
+    "prod": "env-cmd -f .env.prod ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc"
   },
   "dependencies": {

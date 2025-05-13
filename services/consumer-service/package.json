@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
+    "dev": "env-cmd -f .env.dev nodemon src/index.ts",
+    "prod": "env-cmd -f .env.prod nodemon src/index.ts",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest"
@@ -17,6 +18,7 @@
     "@types/helmet": "^0.0.48",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "env-cmd": "^10.1.0",
     "express": "^4.18.2",
     "helmet": "^6.2.0",
     "pg": "^8.11.3",
