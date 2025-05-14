@@ -37,5 +37,5 @@ WORKDIR /app/services/user-service
 # Only install production dependencies
 RUN npm ci --only=production
 
-EXPOSE 3005
+EXPOSE 3025
 CMD [ "npm", "run", "dev" ]

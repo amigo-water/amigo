@@ -26,6 +26,6 @@
     # or keep full install for development mode
     RUN npm ci
     
-    EXPOSE 3001
+    EXPOSE 3018
     
     CMD ["npm", "run", "dev"]    
