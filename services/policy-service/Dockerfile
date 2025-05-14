@@ -28,4 +28,4 @@
     
     EXPOSE 3018
     
-    CMD ["npm", "run", "dev"]    
+    CMD ["npm", "run", "start"]    

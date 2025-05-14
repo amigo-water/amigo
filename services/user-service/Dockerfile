@@ -38,4 +38,4 @@ WORKDIR /app/services/user-service
 RUN npm ci --only=production
 
 EXPOSE 3025
-CMD [ "npm", "run", "dev" ]
+CMD [ "npm", "run", "start" ]

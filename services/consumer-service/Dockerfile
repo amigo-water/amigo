@@ -11,7 +11,7 @@
     COPY . .
     
     # Optional: run build script if applicable (e.g. TypeScript or transpile)
-    # RUN npm run build
+    RUN npm run build
     
     # ---- Production Stage ----
     FROM node:22.14.0-alpine
@@ -28,5 +28,5 @@
     # Expose default port
     EXPOSE 3008
     
-    CMD ["npm", "run", "dev"]
+    CMD ["npm", "run", "start"]
     
