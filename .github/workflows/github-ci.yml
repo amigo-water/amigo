@@ -55,12 +55,14 @@ jobs:
         run: |
           # Build from the root directory where the Dockerfile can properly access both services/ and shared/
           docker build --no-cache -f services/user-service/Dockerfile -t ashritha07/user-service:${{ github.sha }} .
-          docker build --no-cache -f services/consumer-service/Dockerfile -t ashritha07/consumer-service:${{ github.sha }} .
-          docker build --no-cache -f services/policy-service/Dockerfile -t ashritha07/policy-service:${{ github.sha }} .
+          # docker build --no-cache -f services/consumer-service/Dockerfile -t ashritha07/consumer-service:${{ github.sha }} .
+          # docker build --no-cache -f services/policy-service/Dockerfile -t ashritha07/policy-service:${{ github.sha }} .
       
       - name: Check image sizes
         run: |
           docker image inspect ashritha07/user-service:${{ github.sha }} --format='{{.Size}}' | awk '{print "user-service image size: " $1/1024/1024 " MB"}'
+          # docker image inspect ashritha07/consumer-service:${{ github.sha }} --format='{{.Size}}' | awk '{print "consumer-service image size: " $1/1024/1024 " MB"}'
+          # docker image inspect ashritha07/policy-service:${{ github.sha }} --format='{{.Size}}' | awk '{print "policy-service image size: " $1/1024/1024 " MB"}'
           # Additional services would be checked here
       
       - name: Login to Docker Hub
