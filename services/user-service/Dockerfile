@@ -21,7 +21,7 @@ RUN npm ci
 
 # Copy application source code
 WORKDIR /app
-COPY tsconfig.json ./
+COPY services/user-service/tsconfig.json ./services/user-service/
 COPY shared ./shared
 COPY services/user-service ./services/user-service
 
